@@ -242,74 +242,99 @@ DigitalIn colPins[numCols] = {DigitalIn(D6), DigitalIn(D7), DigitalIn(D8), Digit
 
 ```
 
-
-### Seleccionar tecla del teclado matricial
-
-Primero recorremos con un ciclo for los renglones verificando la corriente del renglón, después en otro ciclo verificamos las columnas y si cumple la condición se le asigna a la variable ``` num ``` el número seleccionado.
+### Buscar en la matriz
+estas variables se utilizan para almacenar y rastrear datos dentro del programa en el que se encuentran. Sus nombres sugieren que están relacionadas con el manejo de entrada de datos y el seguimiento de valores numéricos.
 
 ```C++
 
-char getKeyPressed() {
-    for (int i = 0; i < numRows; i++) {
-        rowPins[i] = 0;
-        for (int j = 0; j < numCols; j++) {
-            if (!colPins[j]) {
-                char num = keyMap[i][j];
-                ThisThread::sleep_for(500ms);  // Avoid multiple readings while the key is pressed
-                return num;
-            }
-        }
-        rowPins[i] = 1;
-    }
-    return '\0';
-}
+void showColors() {
+    char inputBuffer[32];
+    int bufferIndex = 0;
+    unsigned int numerosD[3];
+    int numeroA = 0;
+
+    while (numeroActual < 3) {
+        for (int i = 0; i < numRows; i++) {
+            rowPins[i] = 0;
+
+            for (int j = 0; j < numCols; j++) {
+                if (!colPins[j]) {
+                    char keyPressed = keyMap[i][j];
 
 ```
+El ciclo while es el que hemos visto en los anteriores casos, es para rastrear el numero en la matriz.
 
-### Verificación de tecla
+### Elegir intensidad de cada color(RGB)
+Al principio del codigo mostrado podemos ver que para confirmaar la intensidad de un numero tenemos que precionar el *
+Esta línea coloca un carácter nulo ('\0') al final de una cadena de caracteres llamada inputBuffer. Esto es importante porque indica el final de la cadena y prepara inputBuffer para ser procesada como una cadena de caracteres.
 
-Primero verificamos si el usuario esta ingresando un valor y los esta confirmando con '#'
+```C++
+                    if (keyPressed == '*') {
+                        inputBuffer[bufferIndex] = '\0';
+```
+
+Esta línea utiliza la función sscanf para analizar la cadena de caracteres almacenada en inputBuffer como un número sin signo (%u) y almacenar ese valor en el arreglo numerosD en la posición indicada por numeroActual(numeroA).
+Despues lo imprime
+
+```C++
+                        sscanf(inputBuffer, "%u", &numerosD[numeroA]);
+                        printf("Número %d ingresado: %u\n", numeroA + 1, numerosD[numeroA]);
+```
+
+Esta línea utiliza la función memset para llenar inputBuffer con ceros, es decir, para borrar su contenido anterior y prepararlo para recibir una nueva entrada del usuario. Y el numeroA va incrementando demostrando que se guardo excitosamente.
 
 ```C++
 
-int main() {
-    while(true) {
-        char key = getKeyPressed();
-        if (key != '\0') {
-            if (key == '#') {
+                        memset(inputBuffer, 0, sizeof(inputBuffer));
+                        bufferIndex = 0;
+
+                        numeroA++;
+```
+
+Esta línea verifica si se han almacenado ya tres números (o más) en el arreglo numerosD. Si es así, el programa sale del bucle en el que se encuentra. Esto sugiere que el programa espera que el usuario ingrese tres números y luego continúa con alguna otra lógica o procesamiento.
+
+```C++
+                        if (numeroA >= 3) {
+                            break;
+                        }
+                    } else {
+                        inputBuffer[bufferIndex] = keyPressed;
+                        bufferIndex++;
+                    }
+
+                    ThisThread::sleep_for(500ms);
+                }
+            }
+
+            if (numeroA >= 3) {
                 break;
             }
 
-```
-
-Comprueba si key es un número del 0 al 9 o una letra de A a F (en mayúsculas). Esto se hace para asegurarse de que sólo se procesen caracteres hexadecimales válidos.
-
-La función ``` sscanf ``` se utiliza para escanear y convertir la cadena input en un valor hexadecimal que se almacena en la variable ``` colorValue ```. Esto significa que colorValue contendrá el valor numérico correspondiente al caracter hexadecimal ingresado.
-
-Se calculan los componentes de color RGB a partir del valor hexadecimal almacenado en colorValue. El valor hexadecimal se desplaza y se máscara para extraer los componentes de rojo, verde y azul, y luego se divide por ``` 255.0 ``` para obtener valores de componente en el rango de 0 a 1.
-
-```C++
-
-else {
-            if (key >= '0' && key <= '9' || key >= 'A' && key <= 'F') {
-                char input[8];
-                input[0] = '#';
-                input[1] = key;
-                input[2] = '\0';
-                unsigned int colorValue;
-                sscanf(input, "%x", &colorValue);
-                float red = (1-(float)((colorValue >> 16) & 0xFF) / 255.0f);
-                float green = (1-(float)((colorValue >> 8) & 0xFF) / 255.0f);
-                float blue = (1-(float)(colorValue & 0xFF) / 255.0f);
-                setRGBColor(red, green, blue);
-            }
+            rowPins[i] = 1;
         }
     }
-}
-return 0;
-}
 
 ```
 
-Finalmente, se llama a una función ``` setRGBColor ``` con los valores de componente de color calculados (rojo, verde y azul) para configurar el color RGB deseado.
+este código toma tres valores numéricos almacenados en numerosD , normaliza esos valores al rango de 0 a 1 y luego invierte esos valores (restando de 1) para calcular las componentes roja, verde y azul de un color. Luego, utiliza la función setRGBColor para aplicar ese color calculado en algún contexto específico.
+
+```C++
+float red = 1 - (float)(numerosD[0] / 255.0f);
+    float green = 1 - (float)(numerosD[1] / 255.0f);    
+    float blue = 1 - (float)(numerosD[2] / 255.0f);
+
+    setRGBColor(red, green, blue);
+}
+int main() {
+    while (1) {
+        showColors();
+    }
+}
+```
+
+
+
+
+
+
 
