@@ -147,32 +147,20 @@ int main() {
 /*
 #include "mbed.h"
 #include <iostream>
-#include <string.h>
-
-//Definimos el período de tiempo en el que se cambiará el color 
-//de los LEDs RGB. En este caso, se establece en 50 milisegundos (ms)
-#define BLINKING_RATE     50ms
-
-//Creamos un objeto UnbufferedSerial llamado serial para la comunicación
-//serial utilizando los pines USBTX y USBRX de la placa
-//La velocidad de transmisión se establece en 9600 baudios*
+#include <string>
+#include <cmath>
 UnbufferedSerial serial(USBTX, USBRX, 9600);
-
-//Creamos objetos PwmOut para controlar los LEDs RGB conectados a los pines
-//LED1, LED2 y LED3 de la placa
-//con estos objetos podremos controlar la intensidad de los colores rojo,
-//verde y azul mediante modulación por ancho de pulso (PWM)*
+using namespace std;
 PwmOut ledR(LED1);
 PwmOut ledG(LED2);
 PwmOut ledB(LED3);
-
-//Definimos una función setRGBColor que toma tres valores flotantes del 0 al 1
-//para establecer la intensidad de los colores rojo, verde y azul en los LEDs RGB
 void setRGBColor(float red, float green, float blue) {
     ledR = red;
     ledG = green;
     ledB = blue;
 }
+
+using namespace std;
 
 const int numRows = 4;
 const int numCols = 4;
@@ -187,42 +175,61 @@ DigitalOut rowPins[numRows] = {DigitalOut(D2), DigitalOut(D3), DigitalOut(D4),
 DigitalIn colPins[numCols] = {DigitalIn(D6), DigitalIn(D7), DigitalIn(D8),
                               DigitalIn(D9)};
 
-char getKeyPressed() {
-    for (int i = 0; i < numRows; i++) {
-        rowPins[i] = 0;
-        for (int j = 0; j < numCols; j++) {
-            if (!colPins[j]) {
-                char num = keyMap[i][j];
-                ThisThread::sleep_for(500ms);  // Avoid multiple readings while the key is pressed
-                return num;
-            }
-        }
-        rowPins[i] = 1;
-    }
-    return '\0';
-}
+void showColors() {
+    char inputBuffer[32];
+    int bufferIndex = 0;
+    unsigned int numerosD[3];
+    int numeroA = 0;
 
-int main() {
-    while(true) {
-        char key = getKeyPressed();
-        if (key != '\0') {
-            if (key == '#') {
-                break;
-            } else {
-                if (key >= '0' && key <= '9' || key >= 'A' && key <= 'F') {
-                    char input[8];
-                    input[0] = '#';
-                    input[1] = key;
-                    input[2] = '\0';
-                    unsigned int colorValue;
-                    sscanf(input, "%x", &colorValue);
-                    float red = (1-(float)((colorValue >> 16) & 0xFF) / 255.0f);
-                    float green = (1-(float)((colorValue >> 8) & 0xFF) / 255.0f);
-                    float blue = (1-(float)(colorValue & 0xFF) / 255.0f);
-                    setRGBColor(red, green, blue);
+    while (numeroA < 3) {
+        for (int i = 0; i < numRows; i++) {
+            rowPins[i] = 0;
+
+            for (int j = 0; j < numCols; j++) {
+                if (!colPins[j]) {
+                    char keyPressed = keyMap[i][j];
+
+                    if (keyPressed == '#') {
+                        inputBuffer[bufferIndex] = '\0';
+
+                        sscanf(inputBuffer, "%u", &numerosD[numeroA]);
+                        printf("Número %d ingresado: %u\n", numeroA + 1, numerosD[numeroA]);
+
+                        memset(inputBuffer, 0, sizeof(inputBuffer));
+                        bufferIndex = 0;
+
+                        numeroA++;
+
+                        if (numeroA >= 3) {
+                            break;
+                        }
+                    } else {
+                        inputBuffer[bufferIndex] = keyPressed;
+                        bufferIndex++;
+                    }
+
+                    ThisThread::sleep_for(500ms);
                 }
             }
+
+            if (numeroA >= 3) {
+                break;
+            }
+
+            rowPins[i] = 1;
         }
     }
-    return 0;
-}*/
+
+    float red = 1 - (float)(numerosD[0] / 255.0f);
+    float green = 1 - (float)(numerosD[1] / 255.0f);    
+    float blue = 1 - (float)(numerosD[2] / 255.0f);
+
+    setRGBColor(red, green, blue);
+}
+int main() {
+    printf("ingrese numero de 0-255 para el RGB");
+    while (1) {
+        showColors();
+    }
+}
+*/
