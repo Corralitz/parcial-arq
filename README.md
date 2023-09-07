@@ -97,5 +97,219 @@ return 0;
 
 ```
 
-## Segundo Punto: calculo de calificación alfanumérica
+## Segundo Punto: cálculo de calificación alfanumérica
+
+Aplicación que solicite al usuario el ingreso de una nota N del 0 al 10 y despliegue una nota alfanumérica de la forma mostrada en el código.
+
+### Declaración de todos los caracteres en el teclado
+
+A continuación se muestra cómo se inicializan todas las teclas:
+
+```C++
+
+char keyMap[numRows][numCols] = {{'1', '2', '3', 'A'},
+                                  {'4', '5', '6', 'B'},
+                                  {'7', '8', '9', 'C'},
+                                  {'*', '0', '#', 'D'}};
+
+DigitalOut rowPins[numRows] = {DigitalOut(D2), DigitalOut(D3), DigitalOut(D4), DigitalOut(D5)};
+DigitalIn colPins[numCols] = {DigitalIn(D6), DigitalIn(D7), DigitalIn(D8), DigitalIn(D9)};
+
+```
+
+### Seleccionar tecla del teclado matricial
+
+Primero recorremos con un ciclo for los renglones verificando la corriente del renglón, después en otro ciclo verificamos las columnas y si cumple la condición se le asigna a la variable ``` num ``` el número seleccionado.
+
+```C++
+
+char getKeyPressed() {
+    for (int i = 0; i < numRows; i++) {
+        rowPins[i] = 0;
+        for (int j = 0; j < numCols; j++) {
+            if (!colPins[j]) {
+                char num = keyMap[i][j];
+                ThisThread::sleep_for(500ms);  // Avoid multiple readings while the key is pressed
+                return num;
+            }
+        }
+        rowPins[i] = 1;
+    }
+    return '\0';
+}
+
+```
+
+### Verificación de nota
+
+Primero verificamos si el usuario esta ingresando un valor y los esta confirmando con '#'
+
+```C++
+
+string numero = "";
+float grade;
+while (true) {
+    char key = getKeyPressed();
+    if (key != '\0') {
+        if (key == '#') {
+            if (numero.empty()) {
+                printf("No grade entered.\n");
+            }
+```
+
+luego comenzamos a comprobar la nota ingresada con condicionales, los cuales imprimiran la nota dependiente a el valor ingresado por el usuario.
+
+```C++
+else {
+    grade = stof(numero);
+    char alphanumeric_grade;
+    if (grade >= 0 && grade <= 3) {
+        alphanumeric_grade = 'A';
+    } else if (grade > 3 && grade <= 4) {
+        alphanumeric_grade = 'B';
+    } else if (grade > 4 && grade <= 5) {
+        alphanumeric_grade = 'C';
+    } else if (grade > 5 && grade <= 7) {
+        alphanumeric_grade = 'D';
+    } else if (grade > 7 && grade < 9) {
+        alphanumeric_grade = 'E';
+    } else if (grade >= 9 && grade <= 10) {
+        alphanumeric_grade = 'F';
+    } else {
+        printf("Invalid grade entered.\n");
+        numero = "";
+        continue;
+    }
+}
+
+```
+
+Por último verificamos si el número ingresado es inválido, y retornamos 0 para que vuelva a empezar el ciclo.
+
+```C++
+
+printf("Alphanumeric grade: %c\n", alphanumeric_grade);
+                    numero = "";
+                }
+            } else {
+                numero += key;
+            }
+        }
+    }
+    return 0;
+}
+
+```
+
+## Tercer punto: Encender Led RGB con el teclado
+
+Aplicación que permita generar colores en un LED RGB con base en el código de color RGB.
+
+### Definimos las RGB
+
+Definimos el periodo, creamos PwmOut para controlar los led y definimos la funsion set Color para establecer la intecidad de los RGB.
+
+```C++
+
+#define BLINKING_RATE     50ms
+
+UnbufferedSerial serial(USBTX, USBRX, 9600);
+PwmOut ledR(LED1);
+PwmOut ledG(LED2);
+PwmOut ledB(LED3);
+
+void setRGBColor(float red, float green, float blue) {
+    ledR = red;
+    ledG = green;
+    ledB = blue;
+}
+
+```
+
+### Declaración de todos los caracteres en el teclado
+
+A continuación se muestra cómo se inicializan todas las teclas:
+
+```C++
+
+char keyMap[numRows][numCols] = {{'1', '2', '3', 'A'},
+                                  {'4', '5', '6', 'B'},
+                                  {'7', '8', '9', 'C'},
+                                  {'*', '0', '#', 'D'}};
+
+DigitalOut rowPins[numRows] = {DigitalOut(D2), DigitalOut(D3), DigitalOut(D4), DigitalOut(D5)};
+DigitalIn colPins[numCols] = {DigitalIn(D6), DigitalIn(D7), DigitalIn(D8), DigitalIn(D9)};
+
+```
+
+
+### Seleccionar tecla del teclado matricial
+
+Primero recorremos con un ciclo for los renglones verificando la corriente del renglón, después en otro ciclo verificamos las columnas y si cumple la condición se le asigna a la variable ``` num ``` el número seleccionado.
+
+```C++
+
+char getKeyPressed() {
+    for (int i = 0; i < numRows; i++) {
+        rowPins[i] = 0;
+        for (int j = 0; j < numCols; j++) {
+            if (!colPins[j]) {
+                char num = keyMap[i][j];
+                ThisThread::sleep_for(500ms);  // Avoid multiple readings while the key is pressed
+                return num;
+            }
+        }
+        rowPins[i] = 1;
+    }
+    return '\0';
+}
+
+```
+
+### Verificación de tecla
+
+Primero verificamos si el usuario esta ingresando un valor y los esta confirmando con '#'
+
+```C++
+
+int main() {
+    while(true) {
+        char key = getKeyPressed();
+        if (key != '\0') {
+            if (key == '#') {
+                break;
+            }
+
+```
+
+Comprueba si key es un número del 0 al 9 o una letra de A a F (en mayúsculas). Esto se hace para asegurarse de que sólo se procesen caracteres hexadecimales válidos.
+
+La función ``` sscanf ``` se utiliza para escanear y convertir la cadena input en un valor hexadecimal que se almacena en la variable ``` colorValue ```. Esto significa que colorValue contendrá el valor numérico correspondiente al caracter hexadecimal ingresado.
+
+Se calculan los componentes de color RGB a partir del valor hexadecimal almacenado en colorValue. El valor hexadecimal se desplaza y se máscara para extraer los componentes de rojo, verde y azul, y luego se divide por ``` 255.0 ``` para obtener valores de componente en el rango de 0 a 1.
+
+```C++
+
+else {
+            if (key >= '0' && key <= '9' || key >= 'A' && key <= 'F') {
+                char input[8];
+                input[0] = '#';
+                input[1] = key;
+                input[2] = '\0';
+                unsigned int colorValue;
+                sscanf(input, "%x", &colorValue);
+                float red = (1-(float)((colorValue >> 16) & 0xFF) / 255.0f);
+                float green = (1-(float)((colorValue >> 8) & 0xFF) / 255.0f);
+                float blue = (1-(float)(colorValue & 0xFF) / 255.0f);
+                setRGBColor(red, green, blue);
+            }
+        }
+    }
+}
+return 0;
+}
+
+```
+
+Finalmente, se llama a una función ``` setRGBColor ``` con los valores de componente de color calculados (rojo, verde y azul) para configurar el color RGB deseado.
 
