@@ -82,18 +82,18 @@ Finalmente, con los tres valores de la ecuación se pasan a calcular los dos res
 
 ```C++
 
-float a = numeros[0];
-float b = numeros[1];
-float c = numeros[2];
+ if (determinante < 0) {
+    cout << "No existe una solución en los números reales" << endl;
+    return 0;
+  }
 
-float x1, x2;
+  float x1, x2;
 
-x1 = (-b + sqrt(b * b - 4 * a * c)) / (2 * a);
-x2 = (-b - sqrt(b * b - 4 * a * c)) / (2 * a);
+  x1 = (-b + sqrt(determinante)) / (2 * a);
+  x2 = (-b - sqrt(determinante)) / (2 * a);
 
-printf("Las soluciones de la ecuación son: x1 y x2 respectivamente = %f\n", x1, x2);
-
-return 0;
+  cout << "La solucion de la ecuación es: x1 = " << x1 << endl;
+  cout << "La solucion de la ecuación es: x2 = " << x2 << endl;
 
 ```
 
